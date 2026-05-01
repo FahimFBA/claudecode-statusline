@@ -1,5 +1,9 @@
 # claudecode-statusline
 
+<p align="center">
+  <img src="img/preview.png" alt="claudecode-statusline preview" width="720"/>
+</p>
+
 A one-command setup for a richly decorated Claude Code statusline with [Caveman mode](https://github.com/JuliusBrussee/caveman) baked in. Interactive installer lets you pick all components or only the ones you want.
 
 ## What you get
