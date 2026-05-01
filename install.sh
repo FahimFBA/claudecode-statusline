@@ -110,23 +110,28 @@ if [ "$INSTALL_MODE" = "2" ]; then
   printf "  ${BOLD}7)${NC} Weekly limit (7d)  ${DIM}7d ██░░░░░░ 85%% used · 15%% rem ↺ 3d 7h${NC}\n"
   printf "  ${BOLD}8)${NC} Token savings      ${DIM}🪨 ~42%% tokens saved${NC}\n"
   printf "\n"
-  read -rp "  Numbers to include (e.g. 2 3 4 6 7), or 'all' [default=all]: " COMP_INPUT
+  read -rp "  Numbers to include (e.g. 2 3 4 6 7  or  2,3,4,6,7), or 'all' [default=all]: " COMP_INPUT
   COMP_INPUT="${COMP_INPUT:-all}"
+  # normalize: strip commas, collapse spaces so "6, 7, 8" == "6 7 8"
+  COMP_INPUT=$(printf '%s' "$COMP_INPUT" | tr ',' ' ' | tr -s ' ' | sed 's/^ //;s/ $//')
 
   if [ "$COMP_INPUT" != "all" ]; then
-    declare -A COMP_MAP
-    COMP_MAP[1]="SL_CAVEMAN"
-    COMP_MAP[2]="SL_PROJECT"
-    COMP_MAP[3]="SL_MODEL"
-    COMP_MAP[4]="SL_CTX"
-    COMP_MAP[5]="SL_EFFORT"
-    COMP_MAP[6]="SL_5H"
-    COMP_MAP[7]="SL_7D"
-    COMP_MAP[8]="SL_SAVINGS"
+    comp_name_for() {
+      case "$1" in
+        1) printf "SL_CAVEMAN"  ;;
+        2) printf "SL_PROJECT"  ;;
+        3) printf "SL_MODEL"    ;;
+        4) printf "SL_CTX"      ;;
+        5) printf "SL_EFFORT"   ;;
+        6) printf "SL_5H"       ;;
+        7) printf "SL_7D"       ;;
+        8) printf "SL_SAVINGS"  ;;
+      esac
+    }
 
     for num in 1 2 3 4 5 6 7 8; do
       if ! printf ' %s ' "$COMP_INPUT" | grep -q " $num "; then
-        SL_ENV_PREFIX="${COMP_MAP[$num]}=0 ${SL_ENV_PREFIX}"
+        SL_ENV_PREFIX="$(comp_name_for "$num")=0 ${SL_ENV_PREFIX}"
       fi
     done
 
@@ -146,7 +151,7 @@ if [ "$INSTALL_MODE" = "2" ]; then
 fi
 
 # ── build settings blocks ─────────────────────────────────────────────────────
-STATUSLINE_CMD="${SL_ENV_PREFIX}bash \"$HOOKS_DIR/caveman-statusline.sh\""
+STATUSLINE_CMD="${SL_ENV_PREFIX}bash '$HOOKS_DIR/caveman-statusline.sh'"
 
 NEW_HOOKS_JSON=$(cat <<EOF
 {
@@ -248,8 +253,8 @@ elif [ "$MERGE_TOOL" = "jq" ]; then
     > "$SETTINGS"
 
 else
-  ACTIVATE_CMD="node \"$HOOKS_DIR/caveman-activate.js\""
-  TRACKER_CMD="node \"$HOOKS_DIR/caveman-mode-tracker.js\""
+  ACTIVATE_CMD="node '$HOOKS_DIR/caveman-activate.js'"
+  TRACKER_CMD="node '$HOOKS_DIR/caveman-mode-tracker.js'"
   cat > "$SETTINGS" <<JSONEOF
 {
   "hooks": {
