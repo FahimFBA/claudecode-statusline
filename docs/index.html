@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>claudecode-statusline — a richer statusline for Claude Code</title>
+<meta name="description" content="One-command setup for a richly decorated Claude Code statusline: context bar, rate limits, effort, git branch and Caveman mode.">
+<meta property="og:title" content="claudecode-statusline">
+<meta property="og:description" content="A richly decorated Claude Code statusline with Caveman mode baked in.">
+<meta property="og:image" content="img/preview.png">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪨</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0d10; --bg2: #11151a; --card: #151a21; --line: #232a33;
+    --text: #e6e9ee; --mute: #8b95a3;
+    --accent: #e8a05d; --green: #5fd38d; --yellow: #f2c94c; --red: #ef6b6b; --blue: #6cb6ff;
+    --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+    --sans: "Inter", system-ui, -apple-system, Segoe UI, sans-serif;
+  }
+  :root[data-theme="light"] {
+    --bg: #faf8f5; --bg2: #f2eee8; --card: #fff; --line: #e4ddd2;
+    --text: #1d1b18; --mute: #6b655c; --accent: #c2691f;
+    --green: #1f9d55; --yellow: #b7860b; --red: #d03e3e; --blue: #2f6fb3;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 var(--sans); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+  code, pre, .mono { font-family: var(--mono); }
+
+  nav { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(10px);
+        background: color-mix(in srgb, var(--bg) 80%, transparent); border-bottom: 1px solid var(--line); }
+  nav .wrap { display: flex; align-items: center; gap: 22px; height: 56px; }
+  nav .brand { font-weight: 700; color: var(--text); margin-right: auto; font-family: var(--mono); font-size: 14px; }
+  nav a.l { color: var(--mute); font-size: 14px; }
+  nav a.l:hover { color: var(--text); text-decoration: none; }
+  button.theme { background: none; border: 1px solid var(--line); color: var(--text); border-radius: 8px;
+                 width: 34px; height: 34px; cursor: pointer; font-size: 15px; }
+  @media (max-width: 640px) { nav a.l { display: none; } }
+
+  .hero { padding: 84px 0 56px; text-align: center; background:
+    radial-gradient(60% 50% at 50% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 70%); }
+  .pill { display: inline-block; font: 500 13px var(--mono); color: var(--accent);
+          border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); padding: 4px 12px; border-radius: 99px; }
+  h1 { font-size: clamp(34px, 6vw, 62px); line-height: 1.08; margin: 22px 0 16px; letter-spacing: -0.03em; font-weight: 800; }
+  h1 em { font-style: normal; color: var(--accent); }
+  .lead { color: var(--mute); font-size: 18px; max-width: 640px; margin: 0 auto 30px; }
+  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn { padding: 11px 20px; border-radius: 10px; font-weight: 600; font-size: 15px; border: 1px solid var(--line); color: var(--text); background: var(--card); }
+  .btn.primary { background: var(--accent); color: #1a1208; border-color: var(--accent); }
+  .btn:hover { text-decoration: none; filter: brightness(1.08); }
+
+  .shot { margin: 52px auto 0; max-width: 860px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+          box-shadow: 0 30px 80px -30px rgba(0,0,0,.6); background: var(--card); }
+  .shot img { display: block; width: 100%; height: auto; }
+
+  section { padding: 72px 0; }
+  section.alt { background: var(--bg2); border-block: 1px solid var(--line); }
+  h2 { font-size: 32px; letter-spacing: -0.02em; margin: 0 0 8px; }
+  .sub { color: var(--mute); margin: 0 0 36px; }
+
+  /* live statusline */
+  .bar { background: #07090b; color: #dfe4ea; border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px;
+         font: 13px/1.9 var(--mono); overflow-x: auto; white-space: nowrap; }
+  .bar .sep { color: #4a5360; margin: 0 6px; }
+  .g { color: #5fd38d; } .y { color: #f2c94c; } .r { color: #ef6b6b; } .d { color: #6b7684; } .o { color: #e8a05d; }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 8px; }
+  .chip { font: 500 13px var(--mono); padding: 6px 12px; border-radius: 99px; border: 1px solid var(--line);
+          background: var(--card); color: var(--text); cursor: pointer; user-select: none; }
+  .chip[aria-pressed="true"] { border-color: var(--accent); color: var(--accent);
+          background: color-mix(in srgb, var(--accent) 12%, var(--card)); }
+  .env { margin-top: 14px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+  .card h3 { margin: 0 0 6px; font-size: 16px; }
+  .card p { margin: 0; color: var(--mute); font-size: 14.5px; }
+  .card .ex { font: 12.5px var(--mono); margin-bottom: 10px; display: block; }
+
+  .tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+  .tab { font: 600 14px var(--sans); padding: 8px 16px; border-radius: 8px; border: 1px solid var(--line);
+         background: var(--card); color: var(--mute); cursor: pointer; }
+  .tab[aria-selected="true"] { color: var(--text); border-color: var(--accent); }
+  .term { position: relative; background: #07090b; color: #dfe4ea; border: 1px solid var(--line); border-radius: 10px; }
+  .term pre { margin: 0; padding: 18px 70px 18px 18px; overflow-x: auto; font-size: 13.5px; line-height: 1.7; }
+  .term .copy { position: absolute; top: 10px; right: 10px; font: 12px var(--mono); background: #1b2128; color: #cbd2da;
+                border: 1px solid #2b333d; border-radius: 6px; padding: 4px 9px; cursor: pointer; }
+  .hidden { display: none; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--mute); font-weight: 500; font-size: 13px; }
+  td code { color: var(--accent); font-size: 13px; }
+  .tablewrap { overflow-x: auto; background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+
+  .steps { counter-reset: s; display: grid; gap: 14px; padding: 0; list-style: none; }
+  .steps li { counter-increment: s; display: flex; gap: 14px; background: var(--card); border: 1px solid var(--line);
+              border-radius: 12px; padding: 16px 18px; }
+  .steps li::before { content: counter(s); flex: none; width: 28px; height: 28px; border-radius: 50%;
+                      background: var(--accent); color: #1a1208; font-weight: 700; display: grid; place-items: center; font-size: 14px; }
+  .steps b { display: block; }
+  .steps span { color: var(--mute); font-size: 14.5px; }
+
+  footer { padding: 40px 0 60px; color: var(--mute); font-size: 14px; text-align: center; border-top: 1px solid var(--line); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#top">🪨 claudecode-statusline</a>
+    <a class="l" href="#demo">Demo</a>
+    <a class="l" href="#install">Install</a>
+    <a class="l" href="#customize">Customize</a>
+    <a class="l" href="#caveman">Caveman</a>
+    <a class="l" href="https://github.com/FahimFBA/claudecode-statusline">GitHub</a>
+    <button class="theme" id="theme" aria-label="Toggle theme">◐</button>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <span class="pill">for Claude Code</span>
+    <h1>See everything. <em>Spend less.</em></h1>
+    <p class="lead">A one-command setup for a richly decorated Claude Code statusline — context, rate limits, effort, git branch — with Caveman mode baked in.</p>
+    <div class="cta">
+      <a class="btn primary" href="#install">Install in 30 seconds</a>
+      <a class="btn" href="https://github.com/FahimFBA/claudecode-statusline">★ View on GitHub</a>
+    </div>
+    <div class="shot"><img src="img/preview.png" alt="claudecode-statusline preview in Claude Code"></div>
+  </div>
+</header>
+
+<section id="demo" class="alt">
+  <div class="wrap">
+    <h2>Build your own bar</h2>
+    <p class="sub">Toggle segments to see what the installer would produce. The matching <code>SL_*</code> env vars update below.</p>
+    <div class="bar" id="bar" aria-live="polite"></div>
+    <div class="controls" id="chips"></div>
+    <div class="term env"><pre id="envout"></pre></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>What you get</h2>
+    <p class="sub">Seven segments, color-coded by severity.</p>
+    <div class="grid">
+      <div class="card"><span class="ex o">🪨 CAVEMAN</span><h3>Caveman badge</h3><p>Shows the active mode. Hidden when off.</p></div>
+      <div class="card"><span class="ex">📁 my-project 🌿 main</span><h3>Project + branch</h3><p>Folder name and current git branch.</p></div>
+      <div class="card"><span class="ex">🤖 Claude Sonnet 4.6</span><h3>Model</h3><p>Which model is answering right now.</p></div>
+      <div class="card"><span class="ex">CTX <span class="g">████</span>░░░░ 42%</span><h3>Context window</h3><p>Usage bar going green → yellow → red.</p></div>
+      <div class="card"><span class="ex">⚡ ▄ MEDIUM</span><h3>Effort level</h3><p>Shown only when the model supports it.</p></div>
+      <div class="card"><span class="ex">5h <span class="y">████</span>░░░░ 42% used · 58% rem ↺ 1h 22m</span><h3>5-hour limit</h3><p>Spent, remaining, and time until reset.</p></div>
+      <div class="card"><span class="ex">7d <span class="r">██████</span>░░ 85% used · 15% rem ↺ 3d 7h</span><h3>Weekly limit</h3><p>Both values colored independently by severity.</p></div>
+      <div class="card"><span class="ex o">🪨 ~42% tokens saved</span><h3>Token savings</h3><p>Optional live estimate of what Caveman saves.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="install" class="alt">
+  <div class="wrap">
+    <h2>Install</h2>
+    <p class="sub">Needs <a href="https://claude.ai/code">Claude Code</a>, <a href="https://nodejs.org">Node.js</a> LTS, and bash (Git for Windows or WSL on Windows).</p>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-t="unix">macOS / Linux</button>
+      <button class="tab" role="tab" aria-selected="false" data-t="win">Windows</button>
+    </div>
+    <div class="term" id="t-unix"><button class="copy">copy</button><pre>git clone https://github.com/FahimFBA/claudecode-statusline.git
+cd claudecode-statusline
+chmod +x install.sh
+./install.sh</pre></div>
+    <div class="term hidden" id="t-win"><button class="copy">copy</button><pre>git clone https://github.com/FahimFBA/claudecode-statusline.git
+cd claudecode-statusline
+powershell -ExecutionPolicy Bypass -File install.ps1</pre></div>
+    <p class="sub" style="margin-top:14px">Then restart Claude Code. Choose <b>1) Full install</b> or <b>2) Custom</b> to pick components.</p>
+
+    <h3 style="margin-top:40px">What the installer does</h3>
+    <ol class="steps">
+      <li><div><b>Copies hook scripts</b><span>Into <code>~/.claude/hooks/</code>.</span></div></li>
+      <li><div><b>Merges settings</b><span>Into <code>~/.claude/settings.json</code> — existing file is backed up first, other config survives.</span></div></li>
+      <li><div><b>Installs the Caveman plugin</b><span>Via <code>claude plugins install caveman --marketplace caveman</code>.</span></div></li>
+    </ol>
+  </div>
+</section>
+
+<section id="customize">
+  <div class="wrap">
+    <h2>Customize</h2>
+    <p class="sub">Re-run the installer and pick option 2, or set env vars in the <code>statusLine</code> command.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Env var</th><th>Default</th><th>Hides</th></tr></thead>
+        <tbody>
+          <tr><td><code>SL_CAVEMAN=0</code></td><td>on</td><td>Caveman badge</td></tr>
+          <tr><td><code>SL_PROJECT=0</code></td><td>on</td><td>Project + branch</td></tr>
+          <tr><td><code>SL_MODEL=0</code></td><td>on</td><td>Model name</td></tr>
+          <tr><td><code>SL_CTX=0</code></td><td>on</td><td>Context window bar</td></tr>
+          <tr><td><code>SL_EFFORT=0</code></td><td>on</td><td>Effort level</td></tr>
+          <tr><td><code>SL_5H=0</code></td><td>on</td><td>Hourly rate limit</td></tr>
+          <tr><td><code>SL_7D=0</code></td><td>on</td><td>Weekly rate limit</td></tr>
+          <tr><td><code>SL_SAVINGS=0</code></td><td>on</td><td>Token savings</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sub" style="margin-top:20px">Default Caveman mode:</p>
+    <div class="term"><button class="copy">copy</button><pre>export CAVEMAN_DEFAULT_MODE=lite   # lite | full | ultra | off
+
+# or ~/.config/caveman/config.json
+{ "defaultMode": "lite" }</pre></div>
+  </div>
+</section>
+
+<section id="caveman" class="alt">
+  <div class="wrap">
+    <h2>Caveman mode</h2>
+    <p class="sub">Terse replies, same technical substance. Powered by <a href="https://github.com/JuliusBrussee/caveman">JuliusBrussee/caveman</a>.</p>
+    <div class="grid">
+      <div class="tablewrap"><table>
+        <thead><tr><th>Command</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td><code>/caveman</code></td><td>Activate full mode</td></tr>
+          <tr><td><code>/caveman lite</code></td><td>Fewer drops</td></tr>
+          <tr><td><code>/caveman ultra</code></td><td>Max compression</td></tr>
+          <tr><td><code>/caveman off</code></td><td>Deactivate</td></tr>
+          <tr><td><code>/caveman-stats</code></td><td>Session usage + savings</td></tr>
+          <tr><td><code>/caveman-stats --all</code></td><td>Lifetime stats</td></tr>
+        </tbody>
+      </table></div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Level</th><th>Behaviour</th></tr></thead>
+        <tbody>
+          <tr><td><code>lite</code></td><td>Drop articles and filler, keep sentence structure</td></tr>
+          <tr><td><code>full</code></td><td>Fragments OK, short synonyms</td></tr>
+          <tr><td><code>ultra</code></td><td>Minimal connectives</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <h3 style="margin-top:40px">Uninstall</h3>
+    <div class="term"><button class="copy">copy</button><pre>rm ~/.claude/hooks/caveman-*.js ~/.claude/hooks/caveman-statusline.sh</pre></div>
+    <p class="sub" style="margin-top:12px">Then remove the <code>hooks</code>, <code>statusLine</code>, <code>enabledPlugins</code> and <code>extraKnownMarketplaces</code> keys from <code>~/.claude/settings.json</code>.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Statusline and installer by <a href="https://github.com/FahimFBA">FahimFBA</a> ·
+    Caveman engine by <a href="https://github.com/JuliusBrussee/caveman">JuliusBrussee</a> ·
+    <a href="https://github.com/FahimFBA/claudecode-statusline/blob/main/LICENSE">License</a>
+  </div>
+</footer>
+
+<script>
+  // theme
+  const root = document.documentElement;
+  try { const t = localStorage.getItem("theme"); if (t) root.dataset.theme = t; } catch (e) {}
+  document.getElementById("theme").onclick = () => {
+    const next = root.dataset.theme === "light" ? "dark" : "light";
+    root.dataset.theme = next;
+    try { localStorage.setItem("theme", next); } catch (e) {}
+  };
+
+  // live bar builder
+  const segs = [
+    { k: "SL_CAVEMAN", name: "Caveman",  html: '<span class="o">🪨 CAVEMAN</span>' },
+    { k: "SL_PROJECT", name: "Project",  html: '📁 my-project <span class="g">🌿 main</span>' },
+    { k: "SL_MODEL",   name: "Model",    html: '🤖 Claude Sonnet 4.6' },
+    { k: "SL_CTX",     name: "Context",  html: 'CTX <span class="g">███</span><span class="d">█████</span> 42%' },
+    { k: "SL_EFFORT",  name: "Effort",   html: '<span class="y">⚡ ▄ MEDIUM</span>' },
+    { k: "SL_5H",      name: "5h limit", html: '5h <span class="y">███</span><span class="d">█████</span> <span class="y">42% used</span> <span class="g">58% rem</span> ↺ 1h 22m' },
+    { k: "SL_7D",      name: "7d limit", html: '7d <span class="r">██████</span><span class="d">██</span> <span class="r">85% used</span> <span class="r">15% rem</span> ↺ 3d 7h' },
+    { k: "SL_SAVINGS", name: "Savings",  html: '<span class="o">🪨 ~42% tokens saved</span>' },
+  ];
+  const on = Object.fromEntries(segs.map(s => [s.k, s.k !== "SL_SAVINGS"]));
+  const bar = document.getElementById("bar"), chips = document.getElementById("chips"), envout = document.getElementById("envout");
+  function render() {
+    const active = segs.filter(s => on[s.k]);
+    bar.innerHTML = active.length ? active.map(s => s.html).join('<span class="sep">│</span>') : '<span class="d">(empty statusline)</span>';
+    const off = segs.filter(s => !on[s.k]).map(s => s.k + "=0");
+    envout.textContent = off.length ? off.join(" ") : "# all segments on — no env vars needed";
+    chips.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", on[c.dataset.k]));
+  }
+  segs.forEach(s => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.textContent = s.name; b.dataset.k = s.k;
+    b.onclick = () => { on[s.k] = !on[s.k]; render(); };
+    chips.appendChild(b);
+  });
+  render();
+
+  // install tabs
+  document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
+    document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === t));
+    ["unix", "win"].forEach(k => document.getElementById("t-" + k).classList.toggle("hidden", k !== t.dataset.t));
+  });
+
+  // copy buttons
+  document.querySelectorAll(".copy").forEach(b => b.onclick = async () => {
+    try { await navigator.clipboard.writeText(b.nextElementSibling.innerText); b.textContent = "copied"; }
+    catch (e) { b.textContent = "failed"; }
+    setTimeout(() => b.textContent = "copy", 1400);
+  });
+</script>
+</body>
+</html>
