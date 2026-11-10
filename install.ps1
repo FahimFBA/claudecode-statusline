@@ -47,6 +47,7 @@ $hookFiles = @(
     "caveman-mode-tracker.js",
     "caveman-stats.js",
     "caveman-statusline.sh",
+    "caveman-statusline.js",
     "package.json"
 )
 foreach ($file in $hookFiles) {
@@ -130,15 +131,11 @@ if ($installMode -eq "2") {
 }
 
 # ── build settings ────────────────────────────────────────────────────────────
-# On Windows, bash is typically invoked via Git for Windows or WSL
-# Env vars prefix is passed inline in the bash command
-$baseCmd = "bash `"$HooksDir\caveman-statusline.sh`""
-if ($slEnvPrefix) {
-    # Prepend env vars for bash: "VAR=0 bash script"
-    $statuslineCmd = "$slEnvPrefix$baseCmd"
-} else {
-    $statuslineCmd = $baseCmd
-}
+# Use the Node renderer: no bash/jq dependency, works in any Windows shell.
+# Claude Code on Windows runs statusLine via Git Bash (or PowerShell), so use
+# forward slashes and inline env vars valid in a POSIX shell.
+$nodeScript = ($HooksDir -replace '\\', '/') + "/caveman-statusline.js"
+$statuslineCmd = "${slEnvPrefix}node `"$nodeScript`""
 
 $newStatusLine = [ordered]@{
     type    = "command"
@@ -240,14 +237,6 @@ if ($claudeExe) {
 } else {
     Write-Warn "'claude' CLI not found in PATH. After installing Claude Code, run:"
     Write-Warn "  claude plugins install caveman --marketplace caveman"
-}
-
-# ── note about bash on Windows ────────────────────────────────────────────────
-$bashExe = Get-Command "bash" -ErrorAction SilentlyContinue
-if (-not $bashExe) {
-    Write-Warn "bash not found. Statusline script requires bash."
-    Write-Warn "Install Git for Windows (includes bash): https://git-scm.com"
-    Write-Warn "Or enable WSL: wsl --install"
 }
 
 # ── done ──────────────────────────────────────────────────────────────────────

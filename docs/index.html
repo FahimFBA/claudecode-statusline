@@ -243,7 +243,10 @@ powershell -ExecutionPolicy Bypass -File install.ps1</pre></div>
     </div>
 
     <h3 style="margin-top:40px">Uninstall</h3>
+    <p class="sub">macOS / Linux</p>
     <div class="term"><button class="copy">copy</button><pre>rm ~/.claude/hooks/caveman-*.js ~/.claude/hooks/caveman-statusline.sh</pre></div>
+    <p class="sub" style="margin-top:12px">Windows (PowerShell)</p>
+    <div class="term"><button class="copy">copy</button><pre>Remove-Item "$env:USERPROFILE\.claude\hooks\caveman-*"</pre></div>
     <p class="sub" style="margin-top:12px">Then remove the <code>hooks</code>, <code>statusLine</code>, <code>enabledPlugins</code> and <code>extraKnownMarketplaces</code> keys from <code>~/.claude/settings.json</code>.</p>
   </div>
 </section>
