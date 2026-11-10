@@ -32,7 +32,7 @@ Rate limit bars use color-coded severity for both values:
 |---|---|
 | [Claude Code](https://claude.ai/code) | Download from claude.ai/code |
 | [Node.js](https://nodejs.org) LTS | `brew install node` / [nodejs.org](https://nodejs.org) |
-| `bash` (Windows only) | [Git for Windows](https://git-scm.com) or WSL |
+| `git` (optional) | Shows branch in statusline. Windows: [Git for Windows](https://git-scm.com) |
 
 ## Quick start
 
@@ -126,7 +126,8 @@ claudecode-statusline/
 │   ├── caveman-config.js        # Shared config resolver + safe flag I/O
 │   ├── caveman-mode-tracker.js  # UserPromptSubmit hook — tracks mode changes
 │   ├── caveman-stats.js         # Token usage stats engine
-│   ├── caveman-statusline.sh    # Statusline renderer (bash)
+│   ├── caveman-statusline.js    # Statusline renderer (Node, used on Windows)
+│   ├── caveman-statusline.sh    # Statusline renderer (bash, macOS / Linux)
 │   └── package.json             # CommonJS marker
 ├── settings.template.json       # Reference settings (paths replaced by installer)
 ├── install.sh                   # macOS / Linux installer
@@ -167,10 +168,18 @@ Or create `~/.config/caveman/config.json`:
 
 ## Uninstall
 
-Remove the hook scripts:
+Remove the hook scripts.
+
+macOS / Linux:
 
 ```bash
 rm ~/.claude/hooks/caveman-*.js ~/.claude/hooks/caveman-statusline.sh
+```
+
+Windows (PowerShell):
+
+```powershell
+Remove-Item "$env:USERPROFILE\.claude\hooks\caveman-*"
 ```
 
 Remove the `hooks`, `statusLine`, `enabledPlugins`, and `extraKnownMarketplaces` keys from `~/.claude/settings.json`.
