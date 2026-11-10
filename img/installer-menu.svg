@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="282" viewBox="0 0 700 282" role="img" aria-label="Installer component menu">
+  <rect width="700" height="282" rx="8" fill="#07090b"/>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#dfe4ea">
+    <text x="16" y="28" font-weight="bold">Available components:</text>
+    <text x="16" y="68" xml:space="preserve">  <tspan font-weight="bold">1)</tspan> Caveman badge     <tspan fill="#e8a05d">🪨 CAVEMAN:FULL</tspan></text>
+    <text x="16" y="90" xml:space="preserve">  <tspan font-weight="bold">2)</tspan> Project + branch  📁 my-project 🌿 main</text>
+    <text x="16" y="112" xml:space="preserve">  <tspan font-weight="bold">3)</tspan> Model name        🤖 Claude Sonnet 4.6</text>
+    <text x="16" y="134" xml:space="preserve">  <tspan font-weight="bold">4)</tspan> Context window    CTX <tspan fill="#5fd38d">███</tspan><tspan fill="#2a313a">█████</tspan> 42%</text>
+    <text x="16" y="156" xml:space="preserve">  <tspan font-weight="bold">5)</tspan> Effort level      ⚡ ▄ MEDIUM</text>
+    <text x="16" y="178" xml:space="preserve">  <tspan font-weight="bold">6)</tspan> Hourly limit (5h)  5h <tspan fill="#f2c94c">███</tspan><tspan fill="#2a313a">█████</tspan> <tspan fill="#f2c94c">42% used</tspan> · <tspan fill="#5fd38d">58% rem</tspan> ↺ 1h 22m</text>
+    <text x="16" y="200" xml:space="preserve">  <tspan font-weight="bold">7)</tspan> Weekly limit (7d)  7d <tspan fill="#ef6b6b">██████</tspan><tspan fill="#2a313a">██</tspan> <tspan fill="#ef6b6b">85% used</tspan> · <tspan fill="#ef6b6b">15% rem</tspan> ↺ 3d 7h</text>
+    <text x="16" y="222" xml:space="preserve">  <tspan font-weight="bold">8)</tspan> Token savings     <tspan fill="#e8a05d">🪨 ~42% tokens saved</tspan></text>
+    <text x="16" y="262" xml:space="preserve">Numbers to include (e.g. 2 3 4 6 7), or 'all' [default=all]:</text>
+  </g>
+</svg>

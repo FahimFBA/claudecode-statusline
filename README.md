@@ -8,19 +8,19 @@ A one-command setup for a richly decorated Claude Code statusline with [Caveman 
 
 ## What you get
 
-```
-[🪨 CAVEMAN] │ 📁 my-project 🌿 main │ 🤖 Claude Sonnet 4.6 │ CTX ████░░░░ 42% │ ⚡ ▄ MEDIUM │ 5h ████░░░░ 42% used 58% rem ↺ 1h 22m │ 7d ██░░░░░░ 85% used 15% rem ↺ 3d 7h
-```
+<p align="center">
+  <img src="img/statusline.svg" alt="Example statusline with caveman badge, project, model, context, 5h and 7d limits" width="100%"/>
+</p>
 
 | Segment | Description |
 |---|---|
 | `🪨 CAVEMAN` | Active caveman mode (hidden when off) |
 | `📁 project 🌿 branch` | Project folder name + git branch |
 | `🤖 Claude Sonnet 4.6` | Current model name |
-| `CTX ████░░░░ 42%` | Context window usage bar (green → yellow → red) |
+| <img src="img/seg-ctx.svg" alt="CTX ███░░░░░ 42%"/> | Context window usage bar (green → yellow → red) |
 | `⚡ ▄ MEDIUM` | Effort level with fill icon (only when model supports it) |
-| `5h ████░░░░ 42% used 58% rem ↺ 1h 22m` | Hourly rate limit: spent + remaining % + time until reset |
-| `7d ██░░░░░░ 85% used 15% rem ↺ 3d 7h` | Weekly rate limit: spent + remaining % + time until reset |
+| <img src="img/seg-5h.svg" alt="5h ███░░░░░ 42% used 58% rem ↺ 1h 22m"/> | Hourly rate limit: spent + remaining % + time until reset |
+| <img src="img/seg-7d.svg" alt="7d ██████░░ 85% used 15% rem ↺ 3d 7h"/> | Weekly rate limit: spent + remaining % + time until reset |
 
 Rate limit bars use color-coded severity for both values:
 - **Used %** — green (low) → yellow (mid) → red (high usage)
@@ -72,20 +72,7 @@ Choice [1/2, default=1]:
 
 If you choose **2**, you'll see a numbered menu:
 
-```
-Available components:
-
-  1) Caveman badge      🪨 CAVEMAN:FULL
-  2) Project + branch   📁 my-project 🌿 main
-  3) Model name         🤖 Claude Sonnet 4.6
-  4) Context window     CTX ████░░░░ 42%
-  5) Effort level       ⚡ ▄ MEDIUM
-  6) Hourly limit (5h)  5h ████░░░░ 42% used · 58% rem ↺ 1h 22m
-  7) Weekly limit (7d)  7d ██░░░░░░ 85% used · 15% rem ↺ 3d 7h
-  8) Token savings      🪨 ~42% tokens saved
-
-Numbers to include (e.g. 2 3 4 6 7), or 'all' [default=all]:
-```
+<img src="img/installer-menu.svg" alt="Installer menu listing 8 components: caveman badge, project and branch, model name, context window, effort level, 5-hour limit, weekly limit, token savings" width="700"/>
 
 Enter the numbers you want separated by spaces. Your existing `statusLine` in `settings.json` is shown before you choose, so you can decide whether to replace it or build a custom one.
 
