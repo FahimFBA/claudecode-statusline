@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (${{ matrix.os }}, node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: [18, 20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm test
+
+  upgrade:
+    name: upgrade from v1.0.1
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # need the v1.0.1 tag
+      - name: v1.0.1 install, then ./install.sh --update
+        run: |
+          export CLAUDE_CONFIG_DIR="$RUNNER_TEMP/claude"
+          mkdir -p "$CLAUDE_CONFIG_DIR/bin" "$RUNNER_TEMP/v1"
+          printf '#!/bin/sh\nexit 0\n' > "$CLAUDE_CONFIG_DIR/bin/claude" && chmod +x "$CLAUDE_CONFIG_DIR/bin/claude"
+          export PATH="$CLAUDE_CONFIG_DIR/bin:$PATH"
+          printf '{"model":"opus","permissions":{"allow":["Bash(ls)"]}}' > "$CLAUDE_CONFIG_DIR/settings.json"
+
+          git archive v1.0.1 | tar -x -C "$RUNNER_TEMP/v1"
+          printf '2\n2 3 4 6\n' | bash "$RUNNER_TEMP/v1/install.sh"
+          test -f "$CLAUDE_CONFIG_DIR/hooks/caveman-statusline.sh"
+
+          bash install.sh --update
+          cmd() { node -e "console.log(require(process.env.CLAUDE_CONFIG_DIR+'/settings.json').statusLine.command)"; }
+          cmd | grep -E '^SL_SAVINGS=0 SL_7D=0 SL_EFFORT=0 SL_CAVEMAN=0 node '
+          test ! -f "$CLAUDE_CONFIG_DIR/hooks/caveman-statusline.sh"
+          test -f "$CLAUDE_CONFIG_DIR/settings.json.bak"
+          node -e "const c=require(process.env.CLAUDE_CONFIG_DIR+'/settings.json'); if(c.model!=='opus'||c.permissions.allow[0]!=='Bash(ls)') process.exit(1)"
+          echo '{"model":{"display_name":"CI"}}' | node "$CLAUDE_CONFIG_DIR/hooks/caveman-statusline.js" | grep -q CI
+
+          before=$(cmd); bash install.sh --update; [ "$before" = "$(cmd)" ]   # idempotent
+
+  scripts:
+    name: installer scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: bash syntax
+        run: bash -n install.sh && bash -n uninstall.sh
+      - name: shellcheck
+        run: shellcheck -S warning install.sh uninstall.sh
+      - name: PowerShell syntax
+        shell: pwsh
+        run: |
+          foreach ($f in 'install.ps1', 'uninstall.ps1') {
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $f), [ref]$null, [ref]$errors) | Out-Null
+            if ($errors) { $errors | ForEach-Object { Write-Error "$f: $_" }; exit 1 }
+          }
+      - name: installer round trip (bash)
+        run: |
+          export CLAUDE_CONFIG_DIR="$RUNNER_TEMP/claude"
+          mkdir -p "$CLAUDE_CONFIG_DIR/bin" && printf '#!/bin/sh\nexit 0\n' > "$CLAUDE_CONFIG_DIR/bin/claude" && chmod +x "$CLAUDE_CONFIG_DIR/bin/claude"
+          export PATH="$CLAUDE_CONFIG_DIR/bin:$PATH"
+          printf '2\n2 3 4 6 7 10 13\n2\n' | bash install.sh
+          node -e "const c=require(process.env.CLAUDE_CONFIG_DIR+'/settings.json'); if(!/^SL_ORDER=project,model,ctx,5h,7d,cost,git SL_THEME=nord node /.test(c.statusLine.command)) { console.error(c.statusLine.command); process.exit(1) }"
+          echo '{"model":{"display_name":"CI"}}' | node "$CLAUDE_CONFIG_DIR/hooks/caveman-statusline.js" | grep -q CI
+          bash uninstall.sh --yes
+          node -e "const c=require(process.env.CLAUDE_CONFIG_DIR+'/settings.json'); if(Object.keys(c).length) { console.error(c); process.exit(1) }"
+          # 3) Install all -> SL_ORDER=all;  1) Default -> no env vars (classic line)
+          printf '3\n\n' | bash install.sh >/dev/null
+          node -e "const c=require(process.env.CLAUDE_CONFIG_DIR+'/settings.json'); if(!c.statusLine.command.startsWith('SL_ORDER=all node ')) { console.error(c.statusLine.command); process.exit(1) }"
+          printf '1\n\n' | bash install.sh >/dev/null
+          node -e "const c=require(process.env.CLAUDE_CONFIG_DIR+'/settings.json'); if(!c.statusLine.command.startsWith('node ')) { console.error(c.statusLine.command); process.exit(1) }"

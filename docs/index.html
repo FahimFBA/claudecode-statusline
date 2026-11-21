@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>claudecode-statusline — a richer statusline for Claude Code</title>
-<meta name="description" content="One-command setup for a richly decorated Claude Code statusline: context bar, rate limits, effort, git branch and Caveman mode.">
+<meta name="description" content="One-command setup for a richly decorated Claude Code statusline: context bar, rate limits with burn-rate warning, session cost, git status, themes and Caveman mode.">
 <meta property="og:title" content="claudecode-statusline">
-<meta property="og:description" content="A richly decorated Claude Code statusline with Caveman mode baked in.">
+<meta property="og:description" content="A richly decorated Claude Code statusline with burn-rate warning, git status, themes and Caveman mode baked in.">
 <meta property="og:image" content="img/preview.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪨</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -76,6 +76,35 @@
           background: color-mix(in srgb, var(--accent) 12%, var(--card)); }
   .env { margin-top: 14px; }
 
+  /* theme-aware bar: palette comes from CSS vars set by the theme picker */
+  .bar { --t-fg:#dfe4ea; --t-bg:#07090b; --t-dim:#2a313a; --t-sep:#585858; background: var(--t-bg); color: var(--t-fg);
+         white-space: normal; }
+  .bar .seg { white-space: nowrap; }
+  .bar .sep { color: var(--t-sep); }
+  .bar .dim { color: var(--t-dim); }
+  .bar .ok { color: var(--t-ok); } .bar .warn { color: var(--t-warn); } .bar .crit { color: var(--t-crit); }
+  .bar .cav { color: var(--t-caveman); } .bar .prj { color: var(--t-project); } .bar .brn { color: var(--t-branch); }
+  .bar .mdl { color: var(--t-model); } .bar .eff { color: var(--t-effort); } .bar .cst { color: var(--t-cost); }
+  .bar .tim { color: var(--t-time); } .bar .add { color: var(--t-add); } .bar .del { color: var(--t-del); }
+  .bar .dty { color: var(--t-dirty); } .bar .unt { color: var(--t-untracked); } .bar .ahd { color: var(--t-ahead); }
+  .bar .sav { color: var(--t-savings); }
+  .bar + .bar { margin-top: 8px; }
+  .themes { display: grid; gap: 8px; margin-top: 22px; }
+  .themes .bar { display: flex; gap: 14px; align-items: baseline; padding: 10px 16px; line-height: 1.7; }
+  .themes .bar b { flex: none; width: 74px; font-weight: 600; color: var(--t-sep); filter: brightness(1.6); }
+  .group { display: inline-flex; border: 1px solid var(--line); border-radius: 99px; background: var(--card); overflow: hidden; }
+  .group .chip { border: 0; border-radius: 0; background: none; }
+  .group .chip[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 12%, var(--card)); }
+  .group .mv { font: 11px var(--mono); border: 0; border-left: 1px solid var(--line); background: none; color: var(--mute);
+               cursor: pointer; padding: 0 7px; }
+  .group .mv:hover { color: var(--text); }
+  .group .mv:disabled { opacity: .25; cursor: default; }
+  .label { font: 500 12px var(--mono); color: var(--mute); margin: 18px 0 6px; text-transform: uppercase; letter-spacing: .06em; }
+  .tag { font: 500 11px var(--mono); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+         border-radius: 99px; padding: 1px 8px; margin-left: 6px; white-space: nowrap; vertical-align: middle; }
+  .note { border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); background: color-mix(in srgb, var(--accent) 8%, var(--card));
+          border-radius: 10px; padding: 12px 16px; font-size: 14.5px; margin: 0 0 20px; }
+
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 16px; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
   .card h3 { margin: 0 0 6px; font-size: 16px; }
@@ -116,6 +145,7 @@
     <a class="brand" href="#top">🪨 claudecode-statusline</a>
     <a class="l" href="#demo">Demo</a>
     <a class="l" href="#install">Install</a>
+    <a class="l" href="#update">Update</a>
     <a class="l" href="#customize">Customize</a>
     <a class="l" href="#caveman">Caveman</a>
     <a class="l" href="https://github.com/FahimFBA/claudecode-statusline">GitHub</a>
@@ -125,9 +155,9 @@
 
 <header class="hero" id="top">
   <div class="wrap">
-    <span class="pill">for Claude Code</span>
+    <span class="pill">for Claude Code · v2.0</span>
     <h1>See everything. <em>Spend less.</em></h1>
-    <p class="lead">A one-command setup for a richly decorated Claude Code statusline — context, rate limits, effort, git branch — with Caveman mode baked in.</p>
+    <p class="lead">A one-command setup for a richly decorated Claude Code statusline — context, rate limits with a burn-rate warning, session cost, git status, five themes — with Caveman mode baked in.</p>
     <div class="cta">
       <a class="btn primary" href="#install">Install in 30 seconds</a>
       <a class="btn" href="https://github.com/FahimFBA/claudecode-statusline">★ View on GitHub</a>
@@ -139,9 +169,16 @@
 <section id="demo" class="alt">
   <div class="wrap">
     <h2>Build your own bar</h2>
-    <p class="sub">Toggle segments to see what the installer would produce. The matching <code>SL_*</code> env vars update below.</p>
+    <p class="sub">Start from <b>Default</b> (the compact classic line) or <b>Install all</b>, then toggle segments, reorder them with ◀ ▶ and pick a theme. The matching <code>SL_*</code> env vars update below — that is exactly what the installer writes.</p>
     <div class="bar" id="bar" aria-live="polite"></div>
+    <div class="label">Start from</div>
+    <div class="controls" id="presets"></div>
+    <div class="label">Segments</div>
     <div class="controls" id="chips"></div>
+    <div class="label">Options</div>
+    <div class="controls" id="opts"></div>
+    <div class="label">Theme</div>
+    <div class="controls" id="themechips"></div>
     <div class="term env"><pre id="envout"></pre></div>
   </div>
 </section>
@@ -149,15 +186,17 @@
 <section>
   <div class="wrap">
     <h2>What you get</h2>
-    <p class="sub">Seven segments, color-coded by severity.</p>
+    <p class="sub">A compact line by default, color-coded by severity. Cards tagged <span class="tag">extra</span> are opt-in: pick <b>Install all</b> (or choose them in Custom) to get them.</p>
     <div class="grid">
       <div class="card"><span class="ex o">🪨 CAVEMAN</span><h3>Caveman badge</h3><p>Shows the active mode. Hidden when off.</p></div>
-      <div class="card"><span class="ex">📁 my-project 🌿 main</span><h3>Project + branch</h3><p>Folder name and current git branch.</p></div>
-      <div class="card"><span class="ex">🤖 Claude Sonnet 4.6</span><h3>Model</h3><p>Which model is answering right now.</p></div>
+      <div class="card"><span class="ex">📁 my-project <span class="g">🌿 main</span> <span class="y">✎3</span> <span class="d">?2</span> <span class="g">↑1</span></span><h3>Project + git status <span class="tag">git status: extra</span></h3><p>Folder, branch, changed / untracked files, ahead / behind, conflicts. One cheap <code>git</code> call.</p></div>
+      <div class="card"><span class="ex">🤖 Claude Opus 5.5</span><h3>Model</h3><p>Which model is answering right now.</p></div>
       <div class="card"><span class="ex">CTX <span class="g">███</span><span class="d">█████</span> 42%</span><h3>Context window</h3><p>Usage bar going green → yellow → red.</p></div>
       <div class="card"><span class="ex">⚡ ▄ MEDIUM</span><h3>Effort level</h3><p>Shown only when the model supports it.</p></div>
       <div class="card"><span class="ex">5h <span class="y">███</span><span class="d">█████</span> 42% used · 58% rem ↺ 1h 22m</span><h3>5-hour limit</h3><p>Spent, remaining, and time until reset.</p></div>
       <div class="card"><span class="ex">7d <span class="r">██████</span><span class="d">██</span> 85% used · 15% rem ↺ 3d 7h</span><h3>Weekly limit</h3><p>Both values colored independently by severity.</p></div>
+      <div class="card"><span class="ex y">🔥 5h full in ~1h 25m</span><h3>Burn-rate warning <span class="tag">extra</span></h3><p>Shows up only when your current pace will hit a limit before it resets — and tells you when.</p></div>
+      <div class="card"><span class="ex">💰 $0.42 · ⏱ 18m · <span class="g">+124</span> <span class="r">-37</span></span><h3>Cost, time, lines <span class="tag">extra</span></h3><p>Session cost (API-equivalent on subscriptions), duration, and lines added / removed.</p></div>
       <div class="card"><span class="ex o">🪨 ~42% tokens saved</span><h3>Token savings</h3><p>Optional live estimate of what Caveman saves.</p></div>
     </div>
   </div>
@@ -166,7 +205,8 @@
 <section id="install" class="alt">
   <div class="wrap">
     <h2>Install</h2>
-    <p class="sub">Needs <a href="https://claude.ai/code">Claude Code</a>, <a href="https://nodejs.org">Node.js</a> LTS, and bash (Git for Windows or WSL on Windows).</p>
+    <p class="sub">Needs <a href="https://claude.ai/code">Claude Code</a> and <a href="https://nodejs.org">Node.js</a> 18 or newer. No bash, <code>jq</code> or <code>python3</code> required. <code>git</code> is optional (branch and git status).</p>
+    <p class="note"><b>Already using it?</b> Don't reinstall from scratch — use <a href="#update">Update</a>. It keeps your segments, order and theme, so the line looks the same afterwards. <a href="https://github.com/FahimFBA/claudecode-statusline/blob/main/CHANGELOG.md#200---2026-11-22">Breaking changes</a>.</p>
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" aria-selected="true" data-t="unix">macOS / Linux</button>
       <button class="tab" role="tab" aria-selected="false" data-t="win">Windows</button>
@@ -178,36 +218,91 @@ chmod +x install.sh
     <div class="term hidden" id="t-win"><button class="copy">copy</button><pre>git clone https://github.com/FahimFBA/claudecode-statusline.git
 cd claudecode-statusline
 powershell -ExecutionPolicy Bypass -File install.ps1</pre></div>
-    <p class="sub" style="margin-top:14px">Then restart Claude Code. Choose <b>1) Full install</b> or <b>2) Custom</b> to pick components.</p>
+    <p class="sub" style="margin-top:14px">Then restart Claude Code. Choose <b>1) Default</b> (compact classic line), <b>2) Custom</b> (type the component numbers in the order you want them, e.g. <code>2 3 4 6 7 10 13</code>, or <code>all</code>) or <b>3) Install all</b> (every segment plus git status). Each asks for a theme and shows a live preview before writing anything.</p>
 
     <h3 style="margin-top:40px">What the installer does</h3>
     <ol class="steps">
-      <li><div><b>Copies hook scripts</b><span>Into <code>~/.claude/hooks/</code>.</span></div></li>
-      <li><div><b>Merges settings</b><span>Into <code>~/.claude/settings.json</code> — existing file is backed up first, other config survives.</span></div></li>
+      <li><div><b>Copies hook scripts</b><span>Into <code>~/.claude/hooks/</code>, and removes a stale v1 <code>caveman-statusline.sh</code>.</span></div></li>
+      <li><div><b>Merges settings</b><span>Into <code>~/.claude/settings.json</code> — existing file is backed up to <code>settings.json.bak</code>, only this project's entries are touched, your other hooks and config survive, re-running is safe.</span></div></li>
       <li><div><b>Installs the Caveman plugin</b><span>Via <code>claude plugins install caveman --marketplace caveman</code>.</span></div></li>
     </ol>
   </div>
 </section>
 
-<section id="customize">
+<section id="update">
+  <div class="wrap">
+    <h2>Update</h2>
+    <p class="sub">Safe to run any time, and again after every <code>git pull</code>. The installer shows what is installed (<code>Installed: v1.x → this version: v2.0.0</code>), backs up <code>settings.json</code> first, and touches only this project's entries.</p>
+    <div class="tabs" role="tablist">
+      <button class="tab upd" role="tab" aria-selected="true" data-t="unix">macOS / Linux</button>
+      <button class="tab upd" role="tab" aria-selected="false" data-t="win">Windows</button>
+    </div>
+    <div class="term" id="u-unix"><button class="copy">copy</button><pre>cd claudecode-statusline
+git pull
+./install.sh            # choose "4) Update" (the default)
+./install.sh --update   # or: no questions asked</pre></div>
+    <div class="term hidden" id="u-win"><button class="copy">copy</button><pre>cd claudecode-statusline
+git pull
+powershell -ExecutionPolicy Bypass -File install.ps1           # choose "4) Update"
+powershell -ExecutionPolicy Bypass -File install.ps1 -Update   # or: no questions asked</pre></div>
+    <p class="sub" style="margin-top:14px">Then restart Claude Code. Check the installed version with <code>node ~/.claude/hooks/caveman-statusline.js --version</code>.</p>
+
+    <div class="grid" style="margin-top:28px">
+      <div class="card"><h3>✅ Keeps</h3><p>Your <code>SL_*</code> settings (hidden segments, <code>SL_ORDER</code>, <code>SL_THEME</code>), your other hooks, permissions, model and every other key in <code>settings.json</code>.</p></div>
+      <div class="card"><h3>🔄 Replaces</h3><p>The scripts in <code>~/.claude/hooks/</code>. A leftover v1 <code>caveman-statusline.sh</code> is removed. Running Update twice changes nothing.</p></div>
+      <div class="card"><h3>🆕 From 1.x</h3><p>Nothing visible changes. The v2 extras — git status, burn rate, cost, time, lines — are <b>off by default</b>. Say <b>y</b> when asked to turn them on, or re-run and pick <b>Install all</b> later.</p></div>
+      <div class="card"><h3>🛑 Refuses</h3><p>To touch a <code>settings.json</code> that is not valid JSON. It stops and changes nothing.</p></div>
+    </div>
+
+    <h3 style="margin-top:36px">Rolling back</h3>
+    <p class="sub">Two backups sit next to <code>settings.json</code>: <code>.bak</code> (before the latest run, overwritten each run) and <code>.pre-v2.bak</code> (written once when you first upgrade from 1.x, never overwritten).</p>
+    <div class="term"><button class="copy">copy</button><pre># macOS / Linux
+cp ~/.claude/settings.json.pre-v2.bak ~/.claude/settings.json
+git checkout v1.0.1 &amp;&amp; ./install.sh     # old scripts back
+
+# Windows (PowerShell)
+Copy-Item "$env:USERPROFILE\.claude\settings.json.pre-v2.bak" "$env:USERPROFILE\.claude\settings.json" -Force
+git checkout v1.0.1; powershell -ExecutionPolicy Bypass -File install.ps1</pre></div>
+  </div>
+</section>
+
+<section id="customize" class="alt">
   <div class="wrap">
     <h2>Customize</h2>
-    <p class="sub">Re-run the installer and pick option 2, or set env vars in the <code>statusLine</code> command.</p>
+    <p class="sub">Re-run the installer and pick option 2, or set env vars in the <code>statusLine</code> command of <code>~/.claude/settings.json</code>.</p>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>Env var</th><th>Default</th><th>Hides</th></tr></thead>
+        <thead><tr><th>Env var</th><th>Default</th><th>Effect</th></tr></thead>
         <tbody>
-          <tr><td><code>SL_CAVEMAN=0</code></td><td>on</td><td>Caveman badge</td></tr>
-          <tr><td><code>SL_PROJECT=0</code></td><td>on</td><td>Project + branch</td></tr>
-          <tr><td><code>SL_MODEL=0</code></td><td>on</td><td>Model name</td></tr>
-          <tr><td><code>SL_CTX=0</code></td><td>on</td><td>Context window bar</td></tr>
-          <tr><td><code>SL_EFFORT=0</code></td><td>on</td><td>Effort level</td></tr>
-          <tr><td><code>SL_5H=0</code></td><td>on</td><td>Hourly rate limit</td></tr>
-          <tr><td><code>SL_7D=0</code></td><td>on</td><td>Weekly rate limit</td></tr>
-          <tr><td><code>SL_SAVINGS=0</code></td><td>on</td><td>Token savings</td></tr>
+          <tr><td><code>SL_ORDER=all</code></td><td>unset</td><td><b>Everything</b>: all 12 segments plus git status. What "Install all" writes</td></tr>
+          <tr><td><code>SL_ORDER=a,b,c</code></td><td>unset</td><td>Show <b>only</b> these segments, in this order. Keys: <code>caveman project model ctx effort 5h 7d burn cost time lines savings</code>. Add <code>git</code> for git status markers</td></tr>
+          <tr><td><code>SL_BURN=1</code> <code>SL_COST=1</code> <code>SL_TIME=1</code> <code>SL_LINES=1</code> <code>SL_GIT=1</code></td><td>off</td><td>Switch a single extra <b>on</b> without listing everything (ignored when <code>SL_ORDER</code> is set)</td></tr>
+          <tr><td><code>SL_THEME=nord</code></td><td>default</td><td><code>default</code> · <code>nord</code> · <code>gruvbox</code> · <code>light</code> · <code>mono</code></td></tr>
+          <tr><td><code>NO_COLOR=1</code></td><td>unset</td><td>No colors at all</td></tr>
+          <tr><td><code>SL_GIT=0</code></td><td></td><td>Hide git status markers, keep the branch (skips <code>git status</code>)</td></tr>
+          <tr><td><code>SL_CAVEMAN=0</code></td><td>on</td><td>Hide caveman badge</td></tr>
+          <tr><td><code>SL_PROJECT=0</code></td><td>on</td><td>Hide project + branch + git status</td></tr>
+          <tr><td><code>SL_MODEL=0</code></td><td>on</td><td>Hide model name</td></tr>
+          <tr><td><code>SL_CTX=0</code></td><td>on</td><td>Hide context window bar</td></tr>
+          <tr><td><code>SL_EFFORT=0</code></td><td>on</td><td>Hide effort level</td></tr>
+          <tr><td><code>SL_5H=0</code></td><td>on</td><td>Hide hourly rate limit</td></tr>
+          <tr><td><code>SL_7D=0</code></td><td>on</td><td>Hide weekly rate limit</td></tr>
+          <tr><td><code>SL_BURN=0</code></td><td>on</td><td>Hide burn-rate warning</td></tr>
+          <tr><td><code>SL_COST=0</code></td><td>on</td><td>Hide session cost</td></tr>
+          <tr><td><code>SL_TIME=0</code></td><td>on</td><td>Hide session time</td></tr>
+          <tr><td><code>SL_LINES=0</code></td><td>on</td><td>Hide lines changed</td></tr>
+          <tr><td><code>SL_SAVINGS=0</code></td><td>on</td><td>Hide token savings</td></tr>
         </tbody>
       </table>
     </div>
+    <p class="sub" style="margin-top:14px">How they combine: no <code>SL_ORDER</code> → the classic set (extras only with their <code>SL_&lt;X&gt;=1</code>); <code>SL_ORDER=all</code> → everything; <code>SL_ORDER=a,b,c</code> → exactly those. Then any <code>SL_&lt;SEGMENT&gt;=0</code> removes what it names.</p>
+
+    <h3 style="margin-top:36px">Themes</h3>
+    <div class="themes" id="themes"></div>
+
+    <h3 style="margin-top:36px">Preview any combo without Claude Code</h3>
+    <div class="term"><button class="copy">copy</button><pre>SL_THEME=gruvbox SL_ORDER=model,ctx,5h,burn \
+  node ~/.claude/hooks/caveman-statusline.js --demo</pre></div>
     <p class="sub" style="margin-top:20px">Default Caveman mode:</p>
     <div class="term"><button class="copy">copy</button><pre>export CAVEMAN_DEFAULT_MODE=lite   # lite | full | ultra | off
 
@@ -216,7 +311,7 @@ powershell -ExecutionPolicy Bypass -File install.ps1</pre></div>
   </div>
 </section>
 
-<section id="caveman" class="alt">
+<section id="caveman">
   <div class="wrap">
     <h2>Caveman mode</h2>
     <p class="sub">Terse replies, same technical substance. Powered by <a href="https://github.com/JuliusBrussee/caveman">JuliusBrussee/caveman</a>.</p>
@@ -243,11 +338,14 @@ powershell -ExecutionPolicy Bypass -File install.ps1</pre></div>
     </div>
 
     <h3 style="margin-top:40px">Uninstall</h3>
+    <p class="sub">Run from your clone. Removes the hook files and only the <code>settings.json</code> entries this project added — your other hooks, plugins and config stay (the old file is saved as <code>settings.json.bak</code>).</p>
     <p class="sub">macOS / Linux</p>
-    <div class="term"><button class="copy">copy</button><pre>rm ~/.claude/hooks/caveman-*.js ~/.claude/hooks/caveman-statusline.sh</pre></div>
+    <div class="term"><button class="copy">copy</button><pre>./uninstall.sh              # asks first
+./uninstall.sh --keep-plugin # leave the caveman plugin entries</pre></div>
     <p class="sub" style="margin-top:12px">Windows (PowerShell)</p>
-    <div class="term"><button class="copy">copy</button><pre>Remove-Item "$env:USERPROFILE\.claude\hooks\caveman-*"</pre></div>
-    <p class="sub" style="margin-top:12px">Then remove the <code>hooks</code>, <code>statusLine</code>, <code>enabledPlugins</code> and <code>extraKnownMarketplaces</code> keys from <code>~/.claude/settings.json</code>.</p>
+    <div class="term"><button class="copy">copy</button><pre>powershell -ExecutionPolicy Bypass -File uninstall.ps1
+powershell -ExecutionPolicy Bypass -File uninstall.ps1 -Yes -KeepPlugin</pre></div>
+    <p class="sub" style="margin-top:12px">To also remove the plugin itself: <code>claude plugins uninstall caveman</code>.</p>
   </div>
 </section>
 
@@ -255,6 +353,7 @@ powershell -ExecutionPolicy Bypass -File install.ps1</pre></div>
   <div class="wrap">
     Statusline and installer by <a href="https://github.com/FahimFBA">FahimFBA</a> ·
     Caveman engine by <a href="https://github.com/JuliusBrussee/caveman">JuliusBrussee</a> ·
+    <a href="https://github.com/FahimFBA/claudecode-statusline/blob/main/CHANGELOG.md">Changelog</a> ·
     <a href="https://github.com/FahimFBA/claudecode-statusline/blob/main/LICENSE">License</a>
   </div>
 </footer>
@@ -269,38 +368,131 @@ powershell -ExecutionPolicy Bypass -File install.ps1</pre></div>
     try { localStorage.setItem("theme", next); } catch (e) {}
   };
 
-  // live bar builder
+  // live bar builder — palettes are the real xterm-256 values from hooks/caveman-statusline.js
+  const THEMES = {
+    default: { caveman:"#d78700", project:"#5fafff", branch:"#87d787", model:"#d7afff", ok:"#87d787", warn:"#ffd700", crit:"#ff0000", sep:"#585858", cost:"#d7af87", time:"#87afaf", add:"#87d787", del:"#ff5f5f", dirty:"#ffaf5f", untracked:"#8a8a8a", ahead:"#87d787", savings:"#d78700", effort:"#5fafff" },
+    nord: { caveman:"#d7875f", project:"#87afd7", branch:"#87af87", model:"#af87af", ok:"#87af87", warn:"#ffd787", crit:"#d75f5f", sep:"#585858", cost:"#d7af87", time:"#87afaf", add:"#87af87", del:"#d75f5f", dirty:"#ffd787", untracked:"#8a8a8a", ahead:"#87af87", savings:"#d7875f", effort:"#87afd7" },
+    gruvbox: { caveman:"#ff8700", project:"#87afaf", branch:"#afaf00", model:"#d787af", ok:"#afaf00", warn:"#ffaf00", crit:"#d75f5f", sep:"#626262", cost:"#ffaf00", time:"#87af87", add:"#afaf00", del:"#d75f5f", dirty:"#ffaf00", untracked:"#8a8a8a", ahead:"#afaf00", savings:"#ff8700", effort:"#87afaf" },
+    light: { caveman:"#af5f00", project:"#005faf", branch:"#008700", model:"#870087", ok:"#008700", warn:"#d78700", crit:"#d70000", sep:"#bcbcbc", cost:"#875f00", time:"#005f87", add:"#008700", del:"#d70000", dirty:"#d75f00", untracked:"#8a8a8a", ahead:"#008700", savings:"#af5f00", effort:"#005faf" },
+    mono: { caveman:"#bcbcbc", project:"#bcbcbc", branch:"#bcbcbc", model:"#bcbcbc", ok:"#8a8a8a", warn:"#bcbcbc", crit:"#ffffff", sep:"#585858", cost:"#bcbcbc", time:"#bcbcbc", add:"#bcbcbc", del:"#bcbcbc", dirty:"#bcbcbc", untracked:"#8a8a8a", ahead:"#bcbcbc", savings:"#bcbcbc", effort:"#a8a8a8" },
+  };
+  const SURFACE = { light: { bg: "#f4f1ea", fg: "#1d1b18", dim: "#d8d3c8" } };
+  function applyTheme(el, name) {
+    const s = SURFACE[name] || { bg: "#07090b", fg: "#dfe4ea", dim: "#2a313a" };
+    el.style.setProperty("--t-bg", s.bg); el.style.setProperty("--t-fg", s.fg); el.style.setProperty("--t-dim", s.dim);
+    for (const [k, v] of Object.entries(THEMES[name])) el.style.setProperty("--t-" + k, v);
+  }
+  const blocks = (pct, cls) => { const f = Math.floor(pct * 8 / 100);
+    return `<span class="${cls}">${"█".repeat(f)}</span><span class="dim">${"█".repeat(8 - f)}</span>`; };
   const segs = [
-    { k: "SL_CAVEMAN", name: "Caveman",  html: '<span class="o">🪨 CAVEMAN</span>' },
-    { k: "SL_PROJECT", name: "Project",  html: '📁 my-project <span class="g">🌿 main</span>' },
-    { k: "SL_MODEL",   name: "Model",    html: '🤖 Claude Sonnet 4.6' },
-    { k: "SL_CTX",     name: "Context",  html: 'CTX <span class="g">███</span><span class="d">█████</span> 42%' },
-    { k: "SL_EFFORT",  name: "Effort",   html: '<span class="y">⚡ ▄ MEDIUM</span>' },
-    { k: "SL_5H",      name: "5h limit", html: '5h <span class="y">███</span><span class="d">█████</span> <span class="y">42% used</span> <span class="g">58% rem</span> ↺ 1h 22m' },
-    { k: "SL_7D",      name: "7d limit", html: '7d <span class="r">██████</span><span class="d">██</span> <span class="r">85% used</span> <span class="r">15% rem</span> ↺ 3d 7h' },
-    { k: "SL_SAVINGS", name: "Savings",  html: '<span class="o">🪨 ~42% tokens saved</span>' },
+    { k: "caveman", env: "SL_CAVEMAN", name: "Caveman", html: () => '<span class="cav">[🪨 CAVEMAN]</span>' },
+    { k: "project", env: "SL_PROJECT", name: "Project", html: (o) => '<span class="prj">📁 my-project</span><span class="brn"> 🌿 main</span>' +
+        (o.git ? ' <span class="dty">✎3</span> <span class="unt">?2</span> <span class="ahd">↑1</span>' : '') },
+    { k: "model",   env: "SL_MODEL",   name: "Model",    html: () => '<span class="mdl">🤖 Claude Opus 5.5</span>' },
+    { k: "ctx",     env: "SL_CTX",     name: "Context",  html: () => `<span class="ok">CTX </span>${blocks(42, "ok")}<span class="ok"> 42%</span>` },
+    { k: "effort",  env: "SL_EFFORT",  name: "Effort",   html: () => '<span class="eff">⚡ ▄ MEDIUM</span>' },
+    { k: "5h",      env: "SL_5H",      name: "5h limit", html: () => `<span class="warn">5h </span>${blocks(62, "warn")}<span class="warn"> 62% used</span> <span class="warn">38% rem</span> ↺ 2h 40m` },
+    { k: "7d",      env: "SL_7D",      name: "7d limit", html: () => `<span class="ok">7d </span>${blocks(41, "ok")}<span class="ok"> 41% used</span> <span class="ok">59% rem</span> ↺ 3d 7h` },
+    { k: "burn",    env: "SL_BURN",    name: "Burn rate", html: () => '<span class="warn">🔥 5h full in ~1h 25m</span>' },
+    { k: "cost",    env: "SL_COST",    name: "Cost",     html: () => '<span class="cst">💰 $0.42</span>' },
+    { k: "time",    env: "SL_TIME",    name: "Time",     html: () => '<span class="tim">⏱ 18m</span>' },
+    { k: "lines",   env: "SL_LINES",   name: "Lines",    html: () => '<span class="add">+124</span> <span class="del">-37</span>' },
+    { k: "savings", env: "SL_SAVINGS", name: "Savings",  html: () => '<span class="sav">🪨 ~42% tokens saved</span>' },
   ];
-  const on = Object.fromEntries(segs.map(s => [s.k, s.k !== "SL_SAVINGS"]));
-  const bar = document.getElementById("bar"), chips = document.getElementById("chips"), envout = document.getElementById("envout");
+  const byKey = Object.fromEntries(segs.map(s => [s.k, s]));
+  const defaultOrder = segs.map(s => s.k);
+  const EXTRA = ["burn", "cost", "time", "lines"];
+  const classicOn = () => Object.fromEntries(defaultOrder.map(k => [k, !EXTRA.includes(k)]));
+  const state = { order: defaultOrder.slice(), on: classicOn(), git: false, theme: "default" };
+  const bar = document.getElementById("bar"), chips = document.getElementById("chips"),
+        opts = document.getElementById("opts"), themeChips = document.getElementById("themechips"),
+        envout = document.getElementById("envout");
+  const SEP = '<span class="sep"> │ </span>';
+
+  function renderBar(el, keys, opt) {
+    el.innerHTML = keys.length
+      ? keys.map(k => `<span class="seg">${byKey[k].html(opt)}</span>`).join(SEP)
+      : '<span class="dim">(empty statusline)</span>';
+  }
+  function envLine() {
+    const enabled = state.order.filter(k => state.on[k]);
+    const parts = [];
+    const inOrder = (list) => enabled.length === list.length && enabled.every((k, i) => k === list[i]);
+    const classic = defaultOrder.filter(k => !EXTRA.includes(k));
+    if (inOrder(defaultOrder) && state.git) parts.push("SL_ORDER=all");
+    else if (inOrder(classic) && !state.git) { /* plain default: no env vars */ }
+    else if (enabled.length || state.git) parts.push("SL_ORDER=" + enabled.concat(state.git ? ["git"] : []).join(","));
+    if (state.theme !== "default") parts.push("SL_THEME=" + state.theme);
+    return parts.length ? parts.join(" ") : "# defaults — no env vars needed";
+  }
   function render() {
-    const active = segs.filter(s => on[s.k]);
-    bar.innerHTML = active.length ? active.map(s => s.html).join('<span class="sep">│</span>') : '<span class="d">(empty statusline)</span>';
-    const off = segs.filter(s => !on[s.k]).map(s => s.k + "=0");
-    envout.textContent = off.length ? off.join(" ") : "# all segments on — no env vars needed";
-    chips.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", on[c.dataset.k]));
+    applyTheme(bar, state.theme);
+    renderBar(bar, state.order.filter(k => state.on[k]), { git: state.git });
+    envout.textContent = envLine();
+    chips.querySelectorAll(".group").forEach(g => {
+      const k = g.dataset.k, i = state.order.indexOf(k);
+      g.querySelector(".chip").setAttribute("aria-pressed", state.on[k]);
+      g.querySelector('[data-d="-1"]').disabled = i === 0;
+      g.querySelector('[data-d="1"]').disabled = i === state.order.length - 1;
+      g.style.order = i;
+    });
+    opts.querySelector(".chip").setAttribute("aria-pressed", state.git);
+    themeChips.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c.dataset.t === state.theme));
   }
   segs.forEach(s => {
+    const g = document.createElement("span");
+    g.className = "group"; g.dataset.k = s.k;
+    g.innerHTML = `<button class="chip" aria-pressed="true">${s.name}</button>` +
+      `<button class="mv" data-d="-1" aria-label="Move ${s.name} earlier">◀</button>` +
+      `<button class="mv" data-d="1" aria-label="Move ${s.name} later">▶</button>`;
+    g.querySelector(".chip").onclick = () => { state.on[s.k] = !state.on[s.k]; render(); };
+    g.querySelectorAll(".mv").forEach(b => b.onclick = () => {
+      const i = state.order.indexOf(s.k), j = i + Number(b.dataset.d);
+      if (j < 0 || j >= state.order.length) return;
+      [state.order[i], state.order[j]] = [state.order[j], state.order[i]]; render();
+    });
+    chips.appendChild(g);
+  });
+  const gitChip = document.createElement("button");
+  gitChip.className = "chip"; gitChip.textContent = "Git status markers"; gitChip.setAttribute("aria-pressed", "false");
+  gitChip.onclick = () => { state.git = !state.git; render(); };
+  opts.appendChild(gitChip);
+  Object.keys(THEMES).forEach(t => {
     const b = document.createElement("button");
-    b.className = "chip"; b.textContent = s.name; b.dataset.k = s.k;
-    b.onclick = () => { on[s.k] = !on[s.k]; render(); };
-    chips.appendChild(b);
+    b.className = "chip"; b.textContent = t; b.dataset.t = t;
+    b.onclick = () => { state.theme = t; render(); };
+    themeChips.appendChild(b);
+  });
+  const presets = document.getElementById("presets");
+  [["Default", () => { state.order = defaultOrder.slice(); state.on = classicOn(); state.git = false; }],
+   ["Install all", () => { state.order = defaultOrder.slice(); state.on = Object.fromEntries(defaultOrder.map(k => [k, true])); state.git = true; }]
+  ].forEach(([name, apply]) => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.textContent = name;
+    b.onclick = () => { apply(); render(); };
+    presets.appendChild(b);
   });
   render();
 
+  // static theme gallery
+  const gallery = document.getElementById("themes");
+  Object.keys(THEMES).forEach(t => {
+    const row = document.createElement("div");
+    row.className = "bar";
+    applyTheme(row, t);
+    row.innerHTML = `<b>${t}</b><span>` +
+      ["project", "model", "ctx", "5h", "burn"].map(k => `<span class="seg">${byKey[k].html({ git: true })}</span>`).join(SEP) + "</span>";
+    gallery.appendChild(row);
+  });
+
   // install tabs
-  document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
-    document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === t));
-    ["unix", "win"].forEach(k => document.getElementById("t-" + k).classList.toggle("hidden", k !== t.dataset.t));
+  // (two tab groups: install = t-*, update = u-*)
+  [["", "t-"], [".upd", "u-"]].forEach(([extra, prefix]) => {
+    const tabs = document.querySelectorAll(extra ? ".tab" + extra : ".tab:not(.upd)");
+    tabs.forEach(t => t.onclick = () => {
+      tabs.forEach(x => x.setAttribute("aria-selected", x === t));
+      ["unix", "win"].forEach(k => document.getElementById(prefix + k).classList.toggle("hidden", k !== t.dataset.t));
+    });
   });
 
   // copy buttons

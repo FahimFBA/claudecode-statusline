@@ -1,15 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="700" height="282" viewBox="0 0 700 282" role="img" aria-label="Installer component menu">
-  <rect width="700" height="282" rx="8" fill="#07090b"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="396" viewBox="0 0 760 396" role="img" aria-label="Installer component menu with 13 components">
+  <rect width="760" height="396" rx="8" fill="#07090b"/>
   <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#dfe4ea">
     <text x="16" y="28" font-weight="bold">Available components:</text>
-    <text x="16" y="68" xml:space="preserve">  <tspan font-weight="bold">1)</tspan> Caveman badge     <tspan fill="#e8a05d">🪨 CAVEMAN:FULL</tspan></text>
-    <text x="16" y="90" xml:space="preserve">  <tspan font-weight="bold">2)</tspan> Project + branch  📁 my-project 🌿 main</text>
-    <text x="16" y="112" xml:space="preserve">  <tspan font-weight="bold">3)</tspan> Model name        🤖 Claude Sonnet 4.6</text>
-    <text x="16" y="134" xml:space="preserve">  <tspan font-weight="bold">4)</tspan> Context window    CTX <tspan fill="#5fd38d">███</tspan><tspan fill="#2a313a">█████</tspan> 42%</text>
-    <text x="16" y="156" xml:space="preserve">  <tspan font-weight="bold">5)</tspan> Effort level      ⚡ ▄ MEDIUM</text>
-    <text x="16" y="178" xml:space="preserve">  <tspan font-weight="bold">6)</tspan> Hourly limit (5h)  5h <tspan fill="#f2c94c">███</tspan><tspan fill="#2a313a">█████</tspan> <tspan fill="#f2c94c">42% used</tspan> · <tspan fill="#5fd38d">58% rem</tspan> ↺ 1h 22m</text>
-    <text x="16" y="200" xml:space="preserve">  <tspan font-weight="bold">7)</tspan> Weekly limit (7d)  7d <tspan fill="#ef6b6b">██████</tspan><tspan fill="#2a313a">██</tspan> <tspan fill="#ef6b6b">85% used</tspan> · <tspan fill="#ef6b6b">15% rem</tspan> ↺ 3d 7h</text>
-    <text x="16" y="222" xml:space="preserve">  <tspan font-weight="bold">8)</tspan> Token savings     <tspan fill="#e8a05d">🪨 ~42% tokens saved</tspan></text>
-    <text x="16" y="262" xml:space="preserve">Numbers to include (e.g. 2 3 4 6 7), or 'all' [default=all]:</text>
+    <text x="16" y="68" xml:space="preserve">  <tspan font-weight="bold">1)</tspan> Caveman badge      <tspan fill="#d78700">🪨 CAVEMAN:FULL</tspan></text>
+    <text x="16" y="90" xml:space="preserve">  <tspan font-weight="bold">2)</tspan> Project + branch   📁 my-project 🌿 main</text>
+    <text x="16" y="112" xml:space="preserve">  <tspan font-weight="bold">3)</tspan> Model name         🤖 Claude Opus 5.5</text>
+    <text x="16" y="134" xml:space="preserve">  <tspan font-weight="bold">4)</tspan> Context window     <tspan fill="#87d787">CTX </tspan><tspan fill="#87d787">███</tspan><tspan fill="#2a313a">█████</tspan><tspan fill="#87d787"> 42%</tspan></text>
+    <text x="16" y="156" xml:space="preserve">  <tspan font-weight="bold">5)</tspan> Effort level       ⚡ ▄ MEDIUM</text>
+    <text x="16" y="178" xml:space="preserve">  <tspan font-weight="bold">6)</tspan> Hourly limit (5h)  <tspan fill="#ffd700">5h </tspan><tspan fill="#ffd700">████</tspan><tspan fill="#2a313a">████</tspan><tspan fill="#ffd700"> 62% used</tspan> <tspan fill="#ffd700">38% rem</tspan> ↺ 2h 40m</text>
+    <text x="16" y="200" xml:space="preserve">  <tspan font-weight="bold">7)</tspan> Weekly limit (7d)  <tspan fill="#87d787">7d </tspan><tspan fill="#87d787">███</tspan><tspan fill="#2a313a">█████</tspan><tspan fill="#87d787"> 41% used</tspan> <tspan fill="#87d787">59% rem</tspan> ↺ 3d 7h</text>
+    <text x="16" y="222" xml:space="preserve">  <tspan font-weight="bold">8)</tspan> Token savings      <tspan fill="#d78700">🪨 ~42% tokens saved</tspan></text>
+    <text x="16" y="244" xml:space="preserve">  <tspan font-weight="bold">9)</tspan> Burn-rate warning  <tspan fill="#ffd700">🔥 5h full in ~1h 25m</tspan></text>
+    <text x="16" y="266" xml:space="preserve"> <tspan font-weight="bold">10)</tspan> Session cost       <tspan fill="#d7af87">💰 $0.42</tspan></text>
+    <text x="16" y="288" xml:space="preserve"> <tspan font-weight="bold">11)</tspan> Session time       <tspan fill="#87afaf">⏱ 18m</tspan></text>
+    <text x="16" y="310" xml:space="preserve"> <tspan font-weight="bold">12)</tspan> Lines changed      <tspan fill="#87d787">+124</tspan> <tspan fill="#ff5f5f">-37</tspan></text>
+    <text x="16" y="332" xml:space="preserve"> <tspan font-weight="bold">13)</tspan> Git status         <tspan fill="#ffaf5f">✎3</tspan> <tspan fill="#8a8a8a">?2</tspan> <tspan fill="#87d787">↑1</tspan><tspan fill="#8b95a3">  (extends 2)</tspan></text>
+    <text x="16" y="372" xml:space="preserve">Numbers in the order to show them (e.g. 2 3 4 6 7 10 13), 'all', or Enter for classic:</text>
   </g>
 </svg>

@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="230" height="28" viewBox="0 0 230 28" role="img" aria-label="Session cost $0.42, time 18 minutes, 124 lines added and 37 removed">
+  <rect width="230" height="28" rx="6" fill="#07090b"/>
+  <text x="10" y="18" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13" fill="#dfe4ea" xml:space="preserve"><tspan fill="#d7af87">💰 $0.42</tspan><tspan fill="#585858"> │ </tspan><tspan fill="#87afaf">⏱ 18m</tspan><tspan fill="#585858"> │ </tspan><tspan fill="#87d787">+124</tspan> <tspan fill="#ff5f5f">-37</tspan></text>
+</svg>

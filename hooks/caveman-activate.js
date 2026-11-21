@@ -121,12 +121,9 @@ try {
   }
 
   if (!hasStatusline) {
-    const isWindows = process.platform === 'win32';
-    const scriptName = isWindows ? 'caveman-statusline.ps1' : 'caveman-statusline.sh';
-    const scriptPath = path.join(__dirname, scriptName);
-    const command = isWindows
-      ? `powershell -ExecutionPolicy Bypass -File "${scriptPath}"`
-      : `bash "${scriptPath}"`;
+    // v2: single Node renderer on every platform (no bash / jq / powershell).
+    const scriptPath = path.join(__dirname, 'caveman-statusline.js').replace(/\\/g, '/');
+    const command = `node "${scriptPath}"`;
     const statusLineSnippet =
       '"statusLine": { "type": "command", "command": ' + JSON.stringify(command) + ' }';
     output += "\n\n" +

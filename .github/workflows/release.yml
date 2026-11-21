@@ -15,6 +15,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run tests before releasing
+        run: npm test
+
       - name: Read latest version from CHANGELOG.md
         id: ver
         run: |

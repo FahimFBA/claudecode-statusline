@@ -1,0 +1,18 @@
+{
+  "name": "claudecode-statusline",
+  "version": "2.0.0",
+  "description": "A richly decorated Claude Code statusline with Caveman mode baked in.",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FahimFBA/claudecode-statusline.git"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test",
+    "demo": "node hooks/caveman-statusline.js --demo"
+  }
+}

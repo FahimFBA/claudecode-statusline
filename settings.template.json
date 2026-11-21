@@ -27,7 +27,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "bash \"{{HOOKS_DIR}}/caveman-statusline.sh\""
+    "command": "SL_THEME=default node \"{{HOOKS_DIR}}/caveman-statusline.js\""
   },
   "enabledPlugins": {
     "caveman@caveman": true
@@ -39,6 +39,5 @@
         "repo": "JuliusBrussee/caveman"
       }
     }
-  },
-  "theme": "dark"
+  }
 }
