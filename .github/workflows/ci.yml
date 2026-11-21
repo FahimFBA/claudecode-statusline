@@ -68,7 +68,7 @@ jobs:
           foreach ($f in 'install.ps1', 'uninstall.ps1') {
             $errors = $null
             [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $f), [ref]$null, [ref]$errors) | Out-Null
-            if ($errors) { $errors | ForEach-Object { Write-Error "$f: $_" }; exit 1 }
+            if ($errors) { $errors | ForEach-Object { Write-Error "${f}: $_" }; exit 1 }
           }
       - name: installer round trip (bash)
         run: |
